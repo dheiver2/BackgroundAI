@@ -8,7 +8,8 @@ import {
   Zap, 
   Globe, 
   Star, 
-  CheckCircle 
+  CheckCircle,
+  Loader2 
 } from 'lucide-react';
 
 // Logo Component
@@ -25,12 +26,10 @@ const LogoComponent = () => (
       </linearGradient>
     </defs>
     <g transform="translate(100, 100) scale(0.7)">
-      {/* Image outline */}
       <path 
         d="M-70,-70 Q0,-100 70,-70 Q100,0 70,70 Q0,100 -70,70 Q-100,0 -70,-70" 
         fill="url(#logoGradient)"
       />
-      {/* Wand/magic removal effect */}
       <path 
         d="M-30,-30 L30,30 M-30,30 L30,-30" 
         stroke="white" 
@@ -52,7 +51,7 @@ const PRICING_PLANS = [
       'Limited resolution',
       'Watermarked results'
     ],
-    buttonClass: 'bg-gray-200 text-gray-800'
+    buttonClass: 'bg-gray-200 text-gray-800 hover:bg-gray-300'
   },
   {
     title: 'Pro',
@@ -64,7 +63,7 @@ const PRICING_PLANS = [
       'No watermarks',
       'Priority processing'
     ],
-    buttonClass: 'bg-blue-500 text-white',
+    buttonClass: 'bg-blue-500 text-white hover:bg-blue-600',
     recommended: true
   },
   {
@@ -77,7 +76,7 @@ const PRICING_PLANS = [
       'Dedicated support',
       'Advanced security'
     ],
-    buttonClass: 'bg-purple-500 text-white'
+    buttonClass: 'bg-purple-500 text-white hover:bg-purple-600'
   }
 ];
 
@@ -85,11 +84,21 @@ const BackgroundRemovalApp = () => {
   const [originalImage, setOriginalImage] = useState(null);
   const [processedImage, setProcessedImage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
+      if (!file.type.startsWith('image/')) {
+        setError('Please upload a valid image file.');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) { // 5MB
+        setError('File size should be less than 5MB.');
+        return;
+      }
+      setError(null);
       const reader = new FileReader();
       reader.onloadend = () => {
         setOriginalImage(reader.result);
@@ -103,11 +112,10 @@ const BackgroundRemovalApp = () => {
     if (!originalImage) return;
 
     setIsProcessing(true);
+    setError(null);
     try {
-      // Simulate background removal processing
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Create a canvas to simulate processing
       const canvas = document.createElement('canvas');
       const img = new Image();
       img.src = originalImage;
@@ -120,7 +128,6 @@ const BackgroundRemovalApp = () => {
       canvas.height = img.height;
       const ctx = canvas.getContext('2d');
       
-      // Simple simulation of background removal
       ctx.drawImage(img, 0, 0);
       ctx.globalCompositeOperation = 'destination-in';
       ctx.beginPath();
@@ -130,7 +137,7 @@ const BackgroundRemovalApp = () => {
       setProcessedImage(canvas.toDataURL());
     } catch (error) {
       console.error('Background removal error:', error);
-      alert('Failed to remove background. Please try again.');
+      setError('Failed to remove background. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -154,9 +161,9 @@ const BackgroundRemovalApp = () => {
           <h1 className="text-2xl font-bold text-gray-800 ml-2">BackgroundAI</h1>
         </div>
         <nav className="hidden md:flex space-x-4 items-center">
-          <a href="#features" className="text-blue-600 hover:text-blue-800">Features</a>
-          <a href="#pricing" className="text-blue-600 hover:text-blue-800">Pricing</a>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          <a href="#features" className="text-blue-600 hover:text-blue-800 transition-colors">Features</a>
+          <a href="#pricing" className="text-blue-600 hover:text-blue-800 transition-colors">Pricing</a>
+          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
             Start Free
           </button>
         </nav>
@@ -186,11 +193,17 @@ const BackgroundRemovalApp = () => {
             />
             <button 
               onClick={() => fileInputRef.current.click()}
-              className="bg-blue-500 text-white px-6 py-3 rounded-full flex items-center justify-center hover:bg-blue-600 transition"
+              className="bg-blue-500 text-white px-6 py-3 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors"
             >
               <Upload className="mr-2" /> Upload Image
             </button>
           </div>
+
+          {error && (
+            <div className="text-red-500 text-center mb-4">
+              {error}
+            </div>
+          )}
 
           {originalImage && (
             <div className="flex flex-col items-center">
@@ -217,14 +230,17 @@ const BackgroundRemovalApp = () => {
               <button 
                 onClick={simulateBackgroundRemoval}
                 disabled={isProcessing}
-                className="bg-green-500 text-white px-8 py-3 rounded-full hover:bg-green-600 transition"
+                className="bg-green-500 text-white px-8 py-3 rounded-full hover:bg-green-600 transition-colors"
               >
+                {isProcessing ? (
+                  <Loader2 className="animate-spin mr-2 inline" />
+                ) : null}
                 {isProcessing ? 'Processing...' : 'Remove Background'}
               </button>
               {processedImage && (
                 <button 
                   onClick={downloadProcessedImage}
-                  className="mt-4 bg-blue-500 text-white px-8 py-3 rounded-full hover:bg-blue-600 transition"
+                  className="mt-4 bg-blue-500 text-white px-8 py-3 rounded-full hover:bg-blue-600 transition-colors"
                 >
                   <Download className="mr-2 inline" /> Download Image
                 </button>
@@ -240,7 +256,7 @@ const BackgroundRemovalApp = () => {
             {PRICING_PLANS.map((plan, index) => (
               <div 
                 key={index} 
-                className={`bg-white p-8 rounded-xl shadow-lg text-center relative ${
+                className={`bg-white p-8 rounded-xl shadow-lg text-center relative transition-transform hover:scale-105 ${
                   plan.recommended ? 'border-4 border-blue-500' : ''
                 }`}
               >
@@ -261,7 +277,7 @@ const BackgroundRemovalApp = () => {
                     </li>
                   ))}
                 </ul>
-                <button className={`w-full py-3 rounded-full hover:opacity-90 transition ${plan.buttonClass}`}>
+                <button className={`w-full py-3 rounded-full transition-opacity ${plan.buttonClass}`}>
                   Choose Plan
                 </button>
               </div>
@@ -273,7 +289,7 @@ const BackgroundRemovalApp = () => {
         <section className="w-full max-w-6xl bg-blue-600 text-white p-16 rounded-xl text-center">
           <h3 className="text-4xl font-bold mb-6">Ready to Transform Your Images?</h3>
           <p className="text-xl mb-8">Start removing backgrounds in seconds with our AI-powered tool</p>
-          <button className="bg-white text-blue-600 px-12 py-4 rounded-full text-xl font-bold hover:bg-gray-100 transition">
+          <button className="bg-white text-blue-600 px-12 py-4 rounded-full text-xl font-bold hover:bg-gray-100 transition-colors">
             Start Free Trial
           </button>
         </section>
@@ -292,16 +308,16 @@ const BackgroundRemovalApp = () => {
           <div>
             <h4 className="font-bold mb-4">Quick Links</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="hover:text-blue-300">Features</a></li>
-              <li><a href="#" className="hover:text-blue-300">Pricing</a></li>
-              <li><a href="#" className="hover:text-blue-300">Support</a></li>
+              <li><a href="#" className="hover:text-blue-300 transition-colors">Features</a></li>
+              <li><a href="#" className="hover:text-blue-300 transition-colors">Pricing</a></li>
+              <li><a href="#" className="hover:text-blue-300 transition-colors">Support</a></li>
             </ul>
           </div>
           <div>
             <h4 className="font-bold mb-4">Legal</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="hover:text-blue-300">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-blue-300">Terms of Service</a></li>
+              <li><a href="#" className="hover:text-blue-300 transition-colors">Privacy Policy</a></li>
+              <li><a href="#" className="hover:text-blue-300 transition-colors">Terms of Service</a></li>
             </ul>
           </div>
           <div>
