@@ -1,7 +1,7 @@
 # BackgroundAI: Remoção de Fundo de Imagem com IA
 
 ## 🚀 Demonstração
-[Ver Aplicativo](https://claude.site/artifacts/a08c0ac3-12eb-4fcd-8ca5-a46129793361)
+[Ver Aplicativo]( https://claude.site/artifacts/26bc35a6-2fd2-4270-a78c-4efd5bdf6231)
 
 ## 🌟 Funcionalidades
 - Remoção de fundo com um clique
